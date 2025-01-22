@@ -5,7 +5,7 @@ dotenv.config();
 
 const app = express();
 
-app.get("/webhook",(req,res)=>{
+app.get("/webhook", (req, res)=>{
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
@@ -20,7 +20,8 @@ app.get("/webhook",(req,res)=>{
     }
 });
 
-app.post("/webhook",(req,res)=>{
+app.post("/webhook",(req, res)=> {
+    console.log("Message receive triggered");
     console.log(req.body);
     return res.status(200).send("Message received");
 });

@@ -25,7 +25,7 @@ app.get("/webhook", (req, res)=>{
 
 app.post("/webhook",(req, res)=> {
     console.log("Message receive triggered");
-    console.log(req.body.changes);
+    console.log(req.body);
     return res.status(200).send("Message received");
 });
 

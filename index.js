@@ -32,8 +32,11 @@ app.post("/webhook",(req, res)=> {
 
     const sender_name = req.body.entry[0].changes[0].value.contacts[0].profile.name;
 
+    const message_text = req.body.entry[0].changes[0].value.messages[0].text.body;
+
     console.log(`Message sender number: ${sender_number}`);
     console.log(`Message sender name: ${sender_name}`);
+    console.log(`Message: ${message_text}`);
 
     return res.status(200).send("Message received");
 });

@@ -26,7 +26,7 @@ app.get("/webhook", (req, res)=>{
 app.post("/webhook",(req, res)=> {
     console.log("Message receive triggered");
 
-    const sender_number = req.body.entry[0].changes[0].value.metadata.display_phone_number;
+    const sender_number = req.body.entry[0].changes[0].value.messages[0].from;
     const sender_name = req.body.entry[0].changes[0].value.contacts[0].profile.name;
 
     console.log(`Message sender number: ${sender_number}`);

@@ -27,7 +27,12 @@ app.get("/webhook", (req, res)=>{
 app.post("/webhook",(req, res)=> {
     console.log("Message receive triggered");
 
-    if (req.body?.entry[0]?.changes[0]?.value?.messages[0]) {
+    if (
+        req.body.entry &&
+        req.body.entry[0].changes &&
+        req.body.entry[0].changes[0].value.messages &&
+        req.body.entry[0].changes[0].value.messages[0]
+    ) {
         const sender_number_val = `${req.body.entry[0].changes[0].value.messages[0].from}`;
         const sender_number = "+" + sender_number_val.substring(0, sender_number_val.length - 10) +
             "-" + sender_number_val.slice(-10);

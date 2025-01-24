@@ -116,13 +116,13 @@ app.post("/webhook",(req, res)=> {
         const negative_replies = [
             [
                 "who_reply",
-                "How did you get in here?!",
+                "How did you get in?!",
                 "Use this reply if the user is in your room standing behind you"
             ],
             [
                 "scream_reply",
                 "I'll scream!",
-                "Use this reply if you are scared by the user's actions and want to scream"
+                "Use this reply if you're scared by the user's actions and want to scream"
             ],
             [
                 "cops_reply",

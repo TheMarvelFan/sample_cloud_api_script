@@ -85,8 +85,7 @@ app.post("/webhook",(req, res)=> {
                   text: "Choose a reply"
                 },
                 body: {
-                    text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully. 
-                    Please choose an appropriate reply from the list:`
+                    text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease choose an appropriate reply from the list:`
                 },
                 action: {
                     button: "Replies",

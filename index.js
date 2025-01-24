@@ -103,7 +103,7 @@ app.post("/webhook",(req, res)=> {
             ],
             [
                 "busy_reply",
-                "I am busy right now. Can I call you later?",
+                "Can I call you later?",
                 "Use this reply if you are busy and want to call the user later."
             ],
             [

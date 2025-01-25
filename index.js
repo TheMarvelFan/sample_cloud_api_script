@@ -37,6 +37,8 @@ app.post("/webhook",(req, res)=> {
         req.body.entry[0].changes[0].value.messages &&
         req.body.entry[0].changes[0].value.messages[0]
     ) {
+        const phone_number_id = req.body.entry[0].changes[0].value.metadata?.phone_number_id;
+
         if (
             req.body.entry[0].changes[0].value.messages[0].type &&
             req.body.entry[0].changes[0].value.messages[0].type === "interactive"
@@ -102,8 +104,6 @@ app.post("/webhook",(req, res)=> {
             console.log(`Sender Name: ${sender_name}`);
             console.log(`Sender Number: ${sender_number}`);
             console.log(`Message: ${message_text}`);
-
-            const phone_number_id = req.body.entry[0].changes[0].value.metadata?.phone_number_id;
 
             // axios.post(
             //     `https://graph.facebook.com/v21.0/${phone_number_id}/messages`,

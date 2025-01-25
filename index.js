@@ -28,7 +28,7 @@ app.post("/webhook",(req, res)=> {
     console.log("Message receive triggered");
 
     if (!req.body) {
-        console.log(req.body);
+        console.log(req);
     }
 
     if (

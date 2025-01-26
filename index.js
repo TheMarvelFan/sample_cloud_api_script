@@ -132,22 +132,44 @@ app.post("/webhook",(req, res)=> {
             //     }
             // };
 
+            // const message_object = {
+            //     messaging_product: "whatsapp",
+            //     to: `+${sender_number_val}`,
+            //     type: "interactive",
+            //     interactive: {
+            //         type: "list",
+            //         header: {
+            //             type: "text",
+            //             text: "Choose a reply"
+            //         },
+            //         body: {
+            //             text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease choose an appropriate reply from the list:`
+            //         },
+            //         action: {
+            //             button: "Replies",
+            //             sections: [],
+            //         }
+            //     }
+            // };
+
             const message_object = {
                 messaging_product: "whatsapp",
                 to: `+${sender_number_val}`,
                 type: "interactive",
                 interactive: {
-                    type: "list",
-                    header: {
-                        type: "text",
-                        text: "Choose a reply"
-                    },
+                    type: "address_message",
                     body: {
-                        text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease choose an appropriate reply from the list:`
+                        text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease provide your address for delivery:`
                     },
                     action: {
-                        button: "Replies",
-                        sections: [],
+                        name: "address",
+                        parameters: {
+                            country: "IN",
+                            values: {
+                                name: `${sender_name}`,
+                                phone_number: `${sender_number_val}`
+                            }
+                        }
                     }
                 }
             };

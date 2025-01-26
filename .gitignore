@@ -3235,6 +3235,8 @@ d3dcompiler_47.dll
 ffmpeg.dll
 icudtl.dat
 
+flow.txt
+
 # Seen only in sdk
 pnacl/
 chromedriver.exe

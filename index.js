@@ -164,7 +164,11 @@ app.post("/webhook",(req, res)=> {
                     action: {
                         name: "address_message",
                         parameters: {
-                            country: "IN"
+                            country: "IN",
+                            values: {
+                                name: `${sender_name}`,
+                                phone_number: `${sender_number_val.slice(-10)}`
+                            }
                         }
                     }
                 }

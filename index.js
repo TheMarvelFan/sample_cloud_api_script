@@ -104,7 +104,7 @@ app.post("/webhook",(req, res)=> {
             const readableDate = new Date(unixTimestamp * 1000);
             const humanReadableDate = readableDate.toLocaleString();
 
-            const address = req.body.entry[0].changes[0].value.messages[0].location;
+            const address = JSON.stringify(req.body.entry[0].changes[0].value.messages[0].location, null, "\t");
 
             const northOrSouth = latitude.toString().charAt(0) === "-" ? "South" : "North";
             const eastOrWest = longitude.toString().charAt(0) === "-" ? "West" : "East";

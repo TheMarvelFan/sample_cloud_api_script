@@ -104,7 +104,7 @@ app.post("/webhook",(req, res)=> {
             const readableDate = new Date(unixTimestamp * 1000);
             const humanReadableDate = readableDate.toLocaleString();
 
-            let address = req.body.entry[0].changes[0].value.messages[0].location;
+            let address = req.body.entry[0].changes[0].value.messages[0].location.address;
             address = address || "Address not available!";
 
             const northOrSouth = latitude.toString().charAt(0) === "-" ? "South" : "North";

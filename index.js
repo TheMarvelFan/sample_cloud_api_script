@@ -102,7 +102,18 @@ app.post("/webhook",(req, res)=> {
             const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
             const unixTimestamp = parseInt(timestamp, 10);
             const readableDate = new Date(unixTimestamp * 1000);
-            const humanReadableDate = readableDate.toLocaleString();
+
+            const dateTimeFormatOptions = {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Kolkata'
+            };
+
+            const humanReadableDate = new Intl.DateTimeFormat('en-IN', dateTimeFormatOptions).format(readableDate);
 
             let address = req.body.entry[0].changes[0].value.messages[0].location.address;
             address = address || "Address not available!";

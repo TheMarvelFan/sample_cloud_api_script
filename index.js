@@ -92,6 +92,42 @@ app.post("/webhook",(req, res)=> {
                     }
                 );
             }
+        } else if (
+            req.body.entry[0].changes[0].value.messages[0].type &&
+            req.body.entry[0].changes[0].value.messages[0].type === "location"
+        ) {
+            const latitude = req.body.entry[0].changes[0].value.messages[0].location.latitude;
+            const longitude = req.body.entry[0].changes[0].value.messages[0].location.longitude;
+
+            const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
+            const unixTimestamp = parseInt(timestamp, 10);
+            const readableDate = new Date(unixTimestamp * 1000);
+            const humanReadableDate = readableDate.toLocaleString();
+
+            const address = req.body.entry[0].changes[0].value.messages[0].location.address;
+
+            const northOrSouth = latitude.toString().charAt(0) === "-" ? "South" : "North";
+            const eastOrWest = longitude.toString().charAt(0) === "-" ? "West" : "East";
+
+            let message_object = {
+                messaging_product: "whatsapp",
+                to: `+${req.body.entry[0].changes[0].value.messages[0].from}`,
+                type: "text",
+                text: {
+                    body: `Got it! Your location is: ${longitude + "° " + eastOrWest + ", " + latitude + "° " + northOrSouth}\nLast updated at: ${humanReadableDate}\nYour address is: ${address}`
+                }
+            }
+
+            axios.post(
+                `https://graph.facebook.com/v21.0/${phone_number_id}/messages`,
+                message_object,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.PERMANENT_ACCESS_TOKEN}`
+                    }
+                }
+            );
         } else {
             const sender_number_val = `${req.body.entry[0].changes[0].value.messages[0].from}`;
             const sender_number = "+" + sender_number_val.substring(0, sender_number_val.length - 10) +
@@ -152,24 +188,39 @@ app.post("/webhook",(req, res)=> {
             //     }
             // };
 
+            // const message_object = {
+            //     messaging_product: "whatsapp",
+            //     to: `+${sender_number_val}`,
+            //     type: "interactive",
+            //     interactive: {
+            //         type: "address_message",
+            //         body: {
+            //             text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease provide your address for delivery:`
+            //         },
+            //         action: {
+            //             name: "address_message",
+            //             parameters: {
+            //                 country: "IN",
+            //                 values: {
+            //                     name: `${sender_name}`,
+            //                     phone_number: `${sender_number_val.slice(-10)}`
+            //                 }
+            //             }
+            //         }
+            //     }
+            // };
+
             const message_object = {
                 messaging_product: "whatsapp",
                 to: `+${sender_number_val}`,
                 type: "interactive",
                 interactive: {
-                    type: "address_message",
+                    type: "location_request_message",
                     body: {
-                        text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease provide your address for delivery:`
+                        text: `Hello, ${sender_name}. Your message was: ${message_text}\nIt was received successfully.\nPlease provide your desired location for delivery:`
                     },
                     action: {
-                        name: "address_message",
-                        parameters: {
-                            country: "IN",
-                            values: {
-                                name: `${sender_name}`,
-                                phone_number: `${sender_number_val.slice(-10)}`
-                            }
-                        }
+                        name: "send_location"
                     }
                 }
             };

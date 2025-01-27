@@ -96,18 +96,21 @@ app.post("/webhook",(req, res)=> {
             req.body.entry[0].changes[0].value.messages[0].type &&
             req.body.entry[0].changes[0].value.messages[0].type === "location"
         ) {
-            const latitude = req.body.entry[0].changes[0].value.messages[0].location.latitude;
-            const longitude = req.body.entry[0].changes[0].value.messages[0].location.longitude;
+            let latitude = req.body.entry[0].changes[0].value.messages[0].location.latitude;
+            let longitude = req.body.entry[0].changes[0].value.messages[0].location.longitude;
 
             const timestamp = req.body.entry[0].changes[0].value.messages[0].timestamp;
             const unixTimestamp = parseInt(timestamp, 10);
             const readableDate = new Date(unixTimestamp * 1000);
             const humanReadableDate = readableDate.toLocaleString();
 
-            const address = req.body.entry[0].changes[0].value.messages[0].location.address;
+            const address = req.body.entry[0].changes[0].value.messages[0].location;
 
             const northOrSouth = latitude.toString().charAt(0) === "-" ? "South" : "North";
             const eastOrWest = longitude.toString().charAt(0) === "-" ? "West" : "East";
+
+            latitude = latitude.toString().replace("-", "");
+            longitude = longitude.toString().replace("-", "");
 
             let message_object = {
                 messaging_product: "whatsapp",

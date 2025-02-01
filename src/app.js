@@ -1,10 +1,15 @@
 import express from "express";
 import axios from "axios";
+import webhookRoutes from "./routes/webhook.routes.js";
+import healthcheckRoutes from "./routes/healthcheck.routes.js";
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/v1/", webhookRoutes); // change the route in Cloud API settings
+app.use("/api/v1/healthcheck", healthcheckRoutes);
 
 app.get("/webhook", (req, res) => {
     const mode = req.query["hub.mode"];
@@ -324,10 +329,6 @@ app.post("/webhook",(req, res)=> {
     }
 
     return res.status(200).send("Message received");
-});
-
-app.get("/",(req,res)=>{
-    res.status(200).send("Webhook is running");
 });
 
 export { app };

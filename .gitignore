@@ -4859,7 +4859,7 @@ Manifest.toml
 */cmake_install.cmake
 
 ### Remix+Arc template
-/server/index.js
+#/server/index.js
 preferences.arc
 sam.json
 sam.yaml
@@ -11759,8 +11759,8 @@ doc/api/
 
 
 ### Remix+Vercel template
-/api/index.js
-/api/index.js.map
+#/api/index.js
+#/api/index.js.map
 
 ### Intellij template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

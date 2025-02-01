@@ -8618,7 +8618,7 @@ logtalk_doclet_logs/
 *.sig
 
 pkg/
-src/
+#src/
 
 ### Spark template
 *#*#

@@ -26,139 +26,48 @@ const sendOrReceiveMessage = asyncHandler(async (req, res) => {
     if (messageIsReceived(req)) {
         const body = req.body;
 
-        const phone_number_id = body.entry[0].changes[0].value.metadata?.phone_number_id;
-        let senderPhoneNumber = body.entry[0].changes[0].value.messages[0].from;
+        const phone_number_id = getPhoneNumberIdFromBody(body);
+        let senderPhoneNumber = getSenderPhoneNumberFromBody(body);
 
         if (messageIsInteractive(req)) {
-            const option_chosen = body.entry[0].changes[0].value.messages[0].interactive;
+            const interactiveMessageType = getInteractiveMessageType(body);
 
-            if (messageIsListReply(option_chosen)) {
-                const reply_id = option_chosen.list_reply.id;
+            if (messageIsListReply(interactiveMessageType)) {
+                const reply_id = getOptionChosen(interactiveMessageType);
 
                 const message_to_send = setTextMessageObject();
 
                 message_to_send.text.body = chooseReplyBasedOnMessage(reply_id);
 
-                // await axios.post(
-                //     `https://graph.facebook.com/v21.0/${phone_number_id}/messages`,
-                //     message_to_send,
-                //     {
-                //         headers: {
-                //             "Content-Type": "application/json",
-                //             Authorization: `Bearer ${ process.env.PERMANENT_ACCESS_TOKEN }`
-                //         }
-                //     }
-                // );
-
                 const response = await sendMessage(message_to_send, phone_number_id);
                 console.log(response);
             }
         } else if (messageIsLocationMessage(req)) {
-            let latitude = body.entry[0].changes[0].value.messages[0].location.latitude;
-            let longitude = body.entry[0].changes[0].value.messages[0].location.longitude;
-
-            const timestamp = body.entry[0].changes[0].value.messages[0].timestamp;
-            const unixTimestamp = parseInt(timestamp, 10);
-            const readableDate = new Date(unixTimestamp * 1000);
-
-            const dateTimeFormatOptions = {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                timeZone: 'Asia/Kolkata'
-            };
-
-            const humanReadableDate = new Intl.DateTimeFormat('en-IN', dateTimeFormatOptions).format(readableDate);
-
-            let address = body.entry[0].changes[0].value.messages[0].location.address;
-            address = address || "Address not provided!";
-
-            const northOrSouth = latitude.toString().charAt(0) === "-" ? "South" : "North";
-            const eastOrWest = longitude.toString().charAt(0) === "-" ? "West" : "East";
-
-            latitude = latitude.toString().replace("-", "");
-            longitude = longitude.toString().replace("-", "");
-
-            const message_to_send = setMessageResponseObject("text");
-
-            message_to_send.text.body = `Got it! Your location is: ${ longitude + "° " + eastOrWest + ", " + latitude + "° " + northOrSouth }\nLast updated at: ${ humanReadableDate }\nYour address is: ${ address }`;
-
-            // await axios.post(
-            //     `https://graph.facebook.com/v21.0/${phone_number_id}/messages`,
-            //     message_to_send,
-            //     {
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //             Authorization: `Bearer ${ process.env.PERMANENT_ACCESS_TOKEN }`
-            //         }
-            //     }
-            // );
+            const message_to_send = createLocationMessageReply(body, senderPhoneNumber);
 
             const response = await sendMessage(message_to_send, phone_number_id);
             console.log(response)
         } else {
             // making sure sender number is a string
-            senderPhoneNumber = `${ senderPhoneNumber }`;
+            senderPhoneNumber = String(senderPhoneNumber);
 
-            // extracting last 10 digits of sender number and appending "+" at the beginning, and "-" after country code
-            // works for all countries with 10-digit phone numbers
+            const sender_number = getFormattedNumber(senderPhoneNumber);
 
-            const sender_number = "+" + senderPhoneNumber.substring(0, senderPhoneNumber.length - 10) +
-                "-" + senderPhoneNumber.slice(-10);
+            const sender_name = getSenderNameFromBody(body);
 
-            const sender_name = body.entry[0].changes[0].value.contacts[0].profile.name;
+            const message_text = getReceivedMessageText(body);
 
-            const message_text = body.entry[0].changes[0].value.messages[0].text.body;
+            printMessageDetails(sender_name, sender_number, message_text);
 
-            console.log(`Sender Name: ${ sender_name }`);
-            console.log(`Sender Number: ${ sender_number }`);
-            console.log(`Message: ${ message_text }`);
+            let message_to_send;
 
-            // axios.post(
-            //     `https://graph.facebook.com/v21.0/${phone_number_id}/messages`,
-            //     {
-            //         messaging_product: "whatsapp",
-            //         to: "+" + sender_number_val,
-            //         type: "text",
-            //         text: {
-            //             body: `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.`
-            //         }
-            //     },
-            //     {
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //             Authorization: `Bearer ${ process.env.PERMANENT_ACCESS_TOKEN }`
-            //         }
-            //     }
-            // );
+            // message_to_send = createTextMessage(senderPhoneNumber, sender_name, message_text);
 
-            // const message_to_send = setTextMessageObject(senderPhoneNumber);
-            // message_object.text.body = `Hello, ${ sender_name }. Your message was: ${message_text}\nIt was received successfully.`;
-            //
-            // const message_to_send = setListMessageObject(senderPhoneNumber);
-            // message_object.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease choose an appropriate reply from the list:`;
-            //
-            // const message_to_send = setAddressMessageObject(sender_number_val, sender_name);
-            // message_object.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease provide your address for delivery:`;
+            // message_to_send = createListMessage(senderPhoneNumber, sender_name, message_text);
 
-            const message_to_send = setLocationMessageObject(senderPhoneNumber);
-            message_to_send.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease provide your desired location for delivery:`
+            // message_to_send = createAddressMessage(senderPhoneNumber, sender_name, message_text);
 
-            message_to_send.interactive.action.sections = setMessageListSections();
-
-            // await axios.post(
-            //     `https://graph.facebook.com/v21.0/${ phone_number_id }/messages`,
-            //     message_to_send,
-            //     {
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //             Authorization: `Bearer ${ process.env.PERMANENT_ACCESS_TOKEN }`
-            //         }
-            //     }
-            // );
+            message_to_send = createLocationMessage(senderPhoneNumber, sender_name, message_text);
 
             const response = await sendMessage(message_to_send, phone_number_id);
             console.log(response);
@@ -167,6 +76,53 @@ const sendOrReceiveMessage = asyncHandler(async (req, res) => {
 
     return res.status(200).send("Message received");
 });
+
+// creating different types of messages
+
+const createTextMessage = (senderPhoneNumber, sender_name, message_text) => {
+    const message_to_send = setTextMessageObject(senderPhoneNumber);
+    message_to_send.text.body = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.`;
+    return message_to_send;
+};
+
+const createListMessage = (senderPhoneNumber, sender_name, message_text) => {
+    const message_to_send = setListMessageObject(senderPhoneNumber);
+    message_to_send.interactive.action.sections = setMessageListSections();
+    message_to_send.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease choose an appropriate reply from the list:`;
+    return message_to_send;
+};
+
+const createAddressMessage = (senderPhoneNumber, sender_name, message_text) => {
+    const message_to_send = setAddressMessageObject(senderPhoneNumber, sender_name);
+    message_to_send.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease provide your address for delivery:`;
+    return message_to_send;
+};
+
+const createLocationMessage = (senderPhoneNumber, sender_name, message_text) => {
+    const message_to_send = setLocationMessageObject(senderPhoneNumber);
+    message_to_send.interactive.body.text = `Hello, ${ sender_name }. Your message was: ${ message_text }\nIt was received successfully.\nPlease provide your desired location for delivery:`
+    return message_to_send;
+};
+
+const createLocationMessageReply = (body, senderPhoneNumber) => {
+    const latitude = getLatitudeFromBody(body);
+    const longitude = getLongitudeFromBody(body);
+
+    const northOrSouth = getLatitudeDirection(latitude);
+    const eastOrWest = getLongitudeDirection(longitude);
+
+    const absoluteLatitude = getAbsoluteLatitude(latitude);
+    const absoluteLongitude = getAbsoluteLongitude(latitude);
+
+    const humanReadableDate = getHumanReadableDate(body);
+
+    let address = getAddressFromBody(body);
+
+    const message_to_send = setTextMessageObject(senderPhoneNumber);
+    message_to_send.text.body = `Got it! Your location is: ${ absoluteLongitude + "° " + eastOrWest + ", " + absoluteLatitude + "° " + northOrSouth }\nLast updated at: ${ humanReadableDate }\nYour address is: ${ address }`;
+
+    return message_to_send;
+};
 
 // verifying if message was received
 
@@ -177,7 +133,7 @@ const messageIsReceived = (req) => {
     req.body.entry[0].changes[0].value.messages[0];
 };
 
-// message types
+// identifying received message type
 
 const messageIsInteractive = (req) => {
     return req.body.entry[0].changes[0].value.messages[0].type &&
@@ -221,6 +177,8 @@ const chooseReplyBasedOnMessage = (reply_id) => {
     }
 };
 
+// setting message object for different types of messages
+
 const setTextMessageObject = (senderPhoneNumber) => {
     return {
         messaging_product: "whatsapp",
@@ -254,10 +212,10 @@ const setListMessageObject = (senderPhoneNumber) => {
     };
 };
 
-const setAddressMessageObject = (sender_number_val, sender_name) => {
+const setAddressMessageObject = (senderPhoneNumber, sender_name) => {
     return {
         messaging_product: "whatsapp",
-        to: `+${ sender_number_val }`,
+        to: `+${ senderPhoneNumber }`,
         type: "interactive",
         interactive: {
             type: "address_message",
@@ -270,7 +228,7 @@ const setAddressMessageObject = (sender_number_val, sender_name) => {
                     country: "IN",
                     values: {
                         name: `${ sender_name }`,
-                        phone_number: `${ sender_number_val.slice(-10) }`
+                        phone_number: `${ senderPhoneNumber.slice(-10) }`
                     }
                 }
             }
@@ -294,6 +252,8 @@ const setLocationMessageObject = (senderPhoneNumber) => {
         }
     };
 };
+
+// setting list sections and options for interactive list type message
 
 const setMessageListSections = () => {
     const positive_replies = [
@@ -368,6 +328,87 @@ const setMessageListSections = () => {
     });
 
     return sections;
+};
+
+const getPhoneNumberIdFromBody = (body) => {
+    return body.entry[0].changes[0].value.metadata?.phone_number_id;
+};
+
+const getSenderPhoneNumberFromBody = (body) => {
+    return body.entry[0].changes[0].value.messages[0].from;
+};
+
+const getInteractiveMessageType = (body) => {
+    return body.entry[0].changes[0].value.messages[0].interactive;
+};
+
+const getLongitudeFromBody = (body) => {
+    return body.entry[0].changes[0].value.messages[0].location.longitude;
+};
+
+const getLatitudeFromBody = (body) => {
+    return body.entry[0].changes[0].value.messages[0].location.latitude;
+};
+
+const getSenderNameFromBody = (body) => {
+    return body.entry[0].changes[0].value.contacts[0].profile.name;
+};
+
+const getReceivedMessageText = (body) => {
+    return body.entry[0].changes[0].value.messages[0].text.body;
+};
+
+const getHumanReadableDate = (body) => {
+    const timestamp = body.entry[0].changes[0].value.messages[0].timestamp;
+    const unixTimestamp = parseInt(timestamp, 10);
+    const readableDate = new Date(unixTimestamp * 1000);
+
+    const dateTimeFormatOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'Asia/Kolkata'
+    };
+
+    return new Intl.DateTimeFormat('en-IN', dateTimeFormatOptions).format(readableDate);
+};
+
+const getAddressFromBody = (body) => {
+    return body.entry[0].changes[0].value.messages[0].location.address || "Address not provided!";
+};
+
+const getOptionChosen = (option_chosen) => {
+    return option_chosen.list_reply.id;
+};
+
+const getLongitudeDirection = (longitude) => {
+    return longitude.toString().charAt(0) === "-" ? "West" : "East"
+};
+
+const getLatitudeDirection = (latitude) => {
+    return latitude.toString().charAt(0) === "-" ? "South" : "North"
+};
+
+const getAbsoluteLongitude = (longitude) => {
+    return longitude.toString().replace("-", "")
+};
+
+const getAbsoluteLatitude = (latitude) => {
+    return latitude.toString().replace("-", "")
+};
+
+// extracting last 10 digits of sender number and appending "+" at the beginning, and "-" after country code
+// works for all countries with 10-digit phone numbers
+
+const getFormattedNumber = (senderPhoneNumber) => {
+    return `+${ senderPhoneNumber.substring(0, senderPhoneNumber.length - 10) }-${ senderPhoneNumber.slice(-10) }`;
+};
+
+const printMessageDetails = (sender_name, sender_number, message_text) => {
+    console.log(`Sender Name: ${ sender_name }\nSender Number: ${ sender_number }\nReceived Message: ${ message_text }`);
 };
 
 export {

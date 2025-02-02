@@ -4,6 +4,6 @@ import { sendOrReceiveMessage } from "../controllers/webhook.controller.js";
 
 const router = Router();
 
-router.route("/webhook").get(validateWebhook).post(sendOrReceiveMessage);
+router.route("/").get(validateWebhook).post(sendOrReceiveMessage);
 
 export default router;
